@@ -1,47 +1,25 @@
+/* global $ */
+
 'use strict';
 
-walk(document.body);
-
-function walk(node) 
-{
-  // I stole this function from here:
-  // http://is.gd/mwZp7E
-
-  var child, next;
-
-  switch ( node.nodeType )  
-  {
-    case 1:  // Element
-    case 9:  // Document
-    case 11: // Document fragment
-      child = node.firstChild;
-      while ( child ) 
-      {
-        next = child.nextSibling;
-        walk(child);
-        child = next;
-      }
-      break;
-
-    case 3: // Text node
-      handleText(node);
-      break;
-  }
+var colorResultsContaining = function (string) {
+  $("div[id*='result_']").has("li:contains(string)").css("background-color","red");
 }
 
-function handleText(textNode) 
-{
-  var v = textNode.nodeValue;
+// $.getJSON('https://cert.firebaseio.com/certStrings/.json', function (data) {
+//   $.each(data.items, function (i, item) {
+//     console.log(item);
+//     //colorResultsContaining(thisCertString);
+//   });
+// });
 
-  console.log(v);
+$.ajax( 'https://cert.firebaseio.com/certStrings/.json' )
+  .done(function(data) {
+    $.each(data, function (i, string) {
+      console.log('sup');
+      console.log(string);
+      colorResultsContaining(string);
+    });
+  });
 
-  // v = v.replace(/\bThe Cloud\b/g, "My Butt");
-  // v = v.replace(/\bThe cloud\b/g, "My butt");
-  // v = v.replace(/\bthe Cloud\b/g, "my Butt");
-  // v = v.replace(/\bthe cloud\b/g, "my butt");
 
-  // textNode.nodeValue = v;
-}
-
-console.log('\'Allo \'Allo! Content script');
-console.log('sup');
