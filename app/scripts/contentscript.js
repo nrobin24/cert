@@ -3,7 +3,7 @@
 'use strict';
 
 var colorResultsContaining = function (string) {
-  $("div[id*='result_']").has("li:contains(string)").css("background-color","red");
+  $("div[id*='result_']").has("*:contains('" + string + "')").css("background-color","red");
 }
 
 // $.getJSON('https://cert.firebaseio.com/certStrings/.json', function (data) {
