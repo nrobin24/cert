@@ -1,8 +1,11 @@
 /* jshint quotmark: false */
 /* global $ */
 /* global _ */
+/* global Firebase */
 
 'use strict';
+
+var remoteResults = new Firebase('https://cert.firebaseio.com/results');
 
 // get the list of strings from a remote resource, load them locally so they can be used for searching the DOM of amazon results pages
 var searchStrings = [];
@@ -19,23 +22,41 @@ var resultsContaining = function (string) {
 
 // search through the DOM, find nodes specified by calling resultsContaining
 var runSearch = function () {
-    console.log('searching');
-    var searchResults = [];
+
+    // get the part of the url that includes the keywords that the user searched for
+    var url = $(location).attr('href');
+    var urlSplit = url.split('&');
+    var searchWords = _.find(urlSplit, function (frag) {
+        return frag.slice(0,9) === 'keywords=';
+    });
+    if (!searchWords) {
+        searchWords = '';
+    }  else {
+        // drop the 'keywords=' part of the string
+        searchWords = searchWords.split(9);
+    }
+
+
+    var certsFound = [];
     _.each(searchStrings, function (searchString) {
         var hasResults = (resultsContaining(searchString).length > 0);
         if (hasResults){
             // log which search string yielded any results (one or many, doesn't count them any differently)
-            searchResults.push(searchString);
+            certsFound.push(searchString);
             // paint the nodes containing the search string with a red background
             resultsContaining(searchString).css("background-color","red");
         }
     });
-    console.log(searchResults);
+    
+    // send the results up to the server id there were any certsFound
+    if (certsFound.length > 0) {
+        remoteResults.push({searchWords: searchWords, certsFound: certsFound, time: Firebase.ServerValue.TIMESTAMP});
+    }    
 };
 
 // since this can get called a lot of times really quickly, but only needs to run once a second or so, use a rate limiter
 // use underscore.js rate limiter
-var throttledSearch = _.throttle(runSearch, 1000);
+var throttledSearch = _.throttle(runSearch, 1000, {leading: false});
 
 // listen for any changes to the DOM, every time a change is detected run the throttledSearch function
 $('body').bind('DOMSubtreeModified', throttledSearch);

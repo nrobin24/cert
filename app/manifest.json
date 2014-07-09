@@ -35,6 +35,7 @@
                 "styles/main.css"
             ],
             "js": [
+                "scripts/firebase.js",
                 "scripts/underscore-min.js",
                 "scripts/jquery-1.11.0.min.js",
                 "scripts/contentscript.js"
