@@ -6,6 +6,11 @@
 'use strict';
 
 var remoteResults = new Firebase('https://cert.firebaseio.com/results');
+var remoteCounter = new Firebase('https://cert.firebaseio.com/counter');
+var counterSnapshot;
+remoteCounter.on('value', function(dataSnapshot) {
+  counterSnapshot = dataSnapshot;
+});
 
 // get the list of strings from a remote resource, load them locally so they can be used for searching the DOM of amazon results pages
 var searchStrings = [];
@@ -45,13 +50,23 @@ var runSearch = function () {
             certsFound.push(searchString);
             // paint the nodes containing the search string with a red background
             resultsContaining(searchString).css("background-color","red");
+
+            // increment the remote counter
+            if (counterSnapshot.hasChild(searchString)) {
+                var counterVal = counterSnapshot.child(searchString).val();
+                counterVal++;
+                remoteCounter.child(searchString).set(counterVal);
+            } else {
+                remoteCounter.child(searchString).set(0);
+            }
+
         }
     });
     
     // send the results up to the server id there were any certsFound
     if (certsFound.length > 0) {
         remoteResults.push({searchWords: searchWords, certsFound: certsFound, time: Firebase.ServerValue.TIMESTAMP});
-    }    
+    }
 };
 
 // since this can get called a lot of times really quickly, but only needs to run once a second or so, use a rate limiter
